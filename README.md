@@ -4,7 +4,7 @@
 
 Джанго приложение для чата. Предоставляет модели и апи для создания/просмотра 
 чатов. Подразумевается, что сам чаттинг будет реализован на другом сервисе. 
-Например на вебсокетах aiohttp.
+Например на [вебсокетах aiohttp](https://github.com/Safintim/aiohttp-chat)
 
 ### Возможности
 - Диалог
@@ -13,6 +13,10 @@
 
 
 ### Установка
+
+```shell script
+pip install git+git://github.com/Safintim/django-api-chat.git
+```
 
 1. Добавить "chat" в INSTALLED_APPS:
 ```python3
