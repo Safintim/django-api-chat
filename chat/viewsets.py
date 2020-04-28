@@ -2,7 +2,7 @@ from django.db.models import Max
 from rest_framework import decorators, permissions, response, status, viewsets
 
 from chat.settings import READ_ALL_MESSAGES_RETRIEVE_CHAT
-from chat.models import Chat
+from chat.models import Chat, MessageStatus
 from chat.pagination import CustomPagination
 from chat.services import read_messages
 from chat.serializers import (
@@ -69,10 +69,21 @@ class ChatViewSet(viewsets.ModelViewSet):
     @decorators.action(
         methods=['post'],
         detail=True,
-        url_path='read-message/(?P<message_id>[0-9]+)'
+        url_path='read-messages/(?P<message_id>[0-9]+)'
     )
-    def read_message(self, request, *args, **kwargs):
-        return response.Response({})
+    def read_message(self, request, *args, message_id=None, **kwargs):
+        MessageStatus.objects.filter(
+            message_id=message_id, user=request.user,
+        ).update(is_read=True)
+        return response.Response({'message': 'Сообщение прочитано'})
+
+    @decorators.action(methods=['post'], detail=True)
+    def read_messages(self, request, *args, **kwargs):
+        chat = self.get_object()
+        MessageStatus.objects.filter(
+            message__chat=chat, user=request.user,
+        ).update(is_read=True)
+        return response.Response({'message': 'Сообщения прочитано'})
 
     def create(self, request, *args, **kwargs):
         return response.Response(status.HTTP_403_FORBIDDEN)
