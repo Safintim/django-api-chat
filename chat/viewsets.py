@@ -1,6 +1,7 @@
 from django.db.models import Max
 from rest_framework import decorators, permissions, response, status, viewsets
 
+from chat.settings import CHAT_SETTINGS
 from chat.models import Chat
 from chat.pagination import CustomPagination
 from chat.services import read_messages
@@ -50,7 +51,8 @@ class ChatViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         chat = self.get_object()
 
-        read_messages(request.user, chat)
+        if CHAT_SETTINGS['READ_ALL_MESSAGES_RETRIEVE_CHAT']:
+            read_messages(request.user, chat)
 
         chat_serializer = ChatSerializer(chat, context={'request': request})
         queryset = chat.messages.all()
