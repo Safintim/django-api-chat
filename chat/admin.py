@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.conf import settings
 
 from chat import models
-from chat.settings import CHAT_SETTINGS
+from chat.settings import SEARCH_FIELDS_CHATADMIN
 
 
 User = settings.AUTH_USER_MODEL
@@ -34,7 +34,7 @@ class ChatAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('created_at', 'last_message_date', 'last_message_text')
-    search_fields = CHAT_SETTINGS['SEARCH_FIELDS_CHATADMIN']
+    search_fields = SEARCH_FIELDS_CHATADMIN
     list_filter = ('is_group', )
     inlines = (InlineParticipantChat, )
     raw_id_fields = ('participants', )

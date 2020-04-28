@@ -1,7 +1,7 @@
 from django.db.models import Max
 from rest_framework import decorators, permissions, response, status, viewsets
 
-from chat.settings import CHAT_SETTINGS
+from chat.settings import READ_ALL_MESSAGES_RETRIEVE_CHAT
 from chat.models import Chat
 from chat.pagination import CustomPagination
 from chat.services import read_messages
@@ -51,7 +51,7 @@ class ChatViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         chat = self.get_object()
 
-        if CHAT_SETTINGS['READ_ALL_MESSAGES_RETRIEVE_CHAT']:
+        if READ_ALL_MESSAGES_RETRIEVE_CHAT:
             read_messages(request.user, chat)
 
         chat_serializer = ChatSerializer(chat, context={'request': request})
@@ -65,6 +65,14 @@ class ChatViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(queryset, many=True)
         return response.Response(serializer.data)
+
+    @decorators.action(
+        methods=['post'],
+        detail=True,
+        url_path='read-message/(?P<message_id>[0-9]+)'
+    )
+    def read_message(self, request, *args, **kwargs):
+        return response.Response({})
 
     def create(self, request, *args, **kwargs):
         return response.Response(status.HTTP_403_FORBIDDEN)

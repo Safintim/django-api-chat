@@ -1,13 +1,18 @@
 from django.conf import settings
 from rest_framework import serializers
 
+from chat.tools import import_callable
 from chat.models import Chat, Message, ParticipantChat
 from chat.services import get_dialog_between_users
 from chat.exceptions import ObjectAllreadyExists
-from chat.settings import CHAT_SETTINGS
 
 User = settings.AUTH_USER_MODEL
-UserSerializer = CHAT_SETTINGS['USER_SERIALIZER']
+
+
+class DefaultUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', )
 
 
 class ChatSerializer(serializers.ModelSerializer):
@@ -31,6 +36,10 @@ class ChatSerializer(serializers.ModelSerializer):
         if not obj.is_group:
             user = self.context['request'].user
             recipient = obj.get_recipient_for_dialog(user)
+            chat_settings = getattr(settings, 'CHAT_SETTINGS', {})
+            UserSerializer = import_callable(
+                chat_settings.get('USER_SERIALIZER', DefaultUserSerializer),
+            )
             return UserSerializer(recipient).data
 
     class Meta:
