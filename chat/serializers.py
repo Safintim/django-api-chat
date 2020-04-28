@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from chat.tools import import_callable
@@ -6,7 +7,7 @@ from chat.models import Chat, Message, ParticipantChat
 from chat.services import get_dialog_between_users
 from chat.exceptions import ObjectAllreadyExists
 
-User = settings.AUTH_USER_MODEL
+User = get_user_model()
 
 
 class DefaultUserSerializer(serializers.ModelSerializer):
@@ -30,7 +31,7 @@ class ChatSerializer(serializers.ModelSerializer):
             return obj.title
 
         recipient = obj.get_recipient_for_dialog(user)
-        return recipient.nickname
+        return f'{recipient}'
 
     def get_recipient(self, obj):
         if not obj.is_group:
