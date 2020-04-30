@@ -14,7 +14,7 @@ from chat.serializers import (
 
 
 class ChatViewSet(viewsets.ModelViewSet):
-    http_method_names = ['get', 'options', 'post']
+    http_method_names = ['get', 'options', 'post', 'put']
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = CustomPagination
     queryset = Chat.objects.all()
@@ -67,23 +67,58 @@ class ChatViewSet(viewsets.ModelViewSet):
         return response.Response(serializer.data)
 
     @decorators.action(
-        methods=['post'],
+        methods=['put'],
         detail=True,
-        url_path='read-messages/(?P<message_id>[0-9]+)'
+        url_path='messages/(?P<message_id>[0-9]+)/read',
     )
     def read_message(self, request, *args, message_id=None, **kwargs):
+        chat = self.get_object()
         MessageStatus.objects.filter(
-            message_id=message_id, user=request.user,
+            message__chat=chat, message_id=message_id, user=request.user,
         ).update(is_read=True)
         return response.Response({'message': 'Сообщение прочитано'})
 
-    @decorators.action(methods=['post'], detail=True)
+    @decorators.action(methods=['put'], detail=True, url_path='messages/')
     def read_messages(self, request, *args, **kwargs):
         chat = self.get_object()
         MessageStatus.objects.filter(
             message__chat=chat, user=request.user,
         ).update(is_read=True)
         return response.Response({'message': 'Сообщения прочитано'})
+
+    @decorators.action(
+        methods=['put'],
+        detail=True,
+        url_path='messages/(?P<message_id>[0-9]+)/delete_for_me',
+    )
+    def delete_message_for_me(self, request, *args, message_id=None, **kwargs):
+        chat = self.get_object()
+        MessageStatus.objects.filter(
+            message__chat=chat, message_id=message_id, user=request.user,
+        ).update(is_delete_for_me=True)
+        return response.Response({'message': 'Сообщение удалено'})
+
+    @decorators.action(
+        methods=['put'],
+        detail=True,
+        url_path='messages/(?P<message_id>[0-9]+)/delete_for_all',
+    )
+    def delete_message_for_all(self, request, *args, message_id=None, **kwargs):
+        chat = self.get_object()
+
+        # если мое, то для всех
+        if MessageStatus.objects.filter(message_id=message_id, user=request.user).exists():
+            MessageStatus.objects.filter(
+                message__chat=chat, message_id=message_id,
+            ).update(is_delete_for_all=True)
+        else:
+            MessageStatus.objects.filter(
+                message__chat=chat, message_id=message_id, user=request.user,
+            ).update(is_delete_for_me=True)
+        return response.Response({'message': 'Сообщение удалено'})
+
+    def update(self, request, *args, **kwargs):
+        return response.Response(status.HTTP_403_FORBIDDEN)
 
     def create(self, request, *args, **kwargs):
         return response.Response(status.HTTP_403_FORBIDDEN)

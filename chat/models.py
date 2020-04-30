@@ -115,6 +115,8 @@ class MessageStatus(models.Model):
         verbose_name='Пользователь',
     )
     is_read = models.BooleanField('Прочитано', default=False)
+    is_delete_for_me = models.BooleanField('Удалено для меня', default=False)
+    is_delete_for_all = models.BooleanField('Удалено для всех', default=False)
     created_at = models.DateTimeField('Дата создания', auto_now_add=True)
 
     class Meta:
